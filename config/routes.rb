@@ -3,7 +3,7 @@ Rails.application.routes.draw do
   root to: 'rooms#show_latest_or_create_general'
   get    '/login',  to: 'sessions#new'     # ログインフォームGET
   post   '/login',  to: 'sessions#create'  # ログインPOST受け
-  delete '/logout', to: 'sessions#destroy' # ログアウトDELETE受け
+  delete '/logout', to: 'sessions#destroy', as: :logout # ログアウトDELETE受け
 
   resources :users, only: [:create]
   resources :rooms, only: [:show]

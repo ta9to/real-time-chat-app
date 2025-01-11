@@ -1,4 +1,6 @@
 class RoomsController < ApplicationController
+  before_action :require_login
+
   def show_latest_or_create_general
     @room = Room.order(created_at: :asc).first
     if @room.nil?

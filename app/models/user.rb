@@ -5,6 +5,5 @@ class User < ApplicationRecord
   has_many :rooms, through: :room_users
   has_many :messages, dependent: :destroy
 
-  validates :name, presence: true
-  validates :email, presence: true, uniqueness: true
+  validates :provider, :uid, presence: true
 end

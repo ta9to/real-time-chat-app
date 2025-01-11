@@ -1,2 +1,10 @@
 <h1><%= @room.name %></h1>
+<% if session[:user_id] %>
+  <p>ログイン中:
+    ID: <%= session[:user_id] %>
+    名前: <%= User.find(session[:user_id]).name %>
+  </p>
+<% else %>
+  <p>ログインしていません</p>
+<% end %>
 <%= button_to "ログアウト", logout_path, method: :delete, class: "btn btn-danger" %>

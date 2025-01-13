@@ -40,6 +40,7 @@ gem "omniauth-google-oauth2"
 gem "omniauth-github"
 gem "dotenv-rails", groups: [ :development, :test ]
 gem 'omniauth-rails_csrf_protection', '~> 0.1'
+gem 'pg'
 
 group :production do
   gem 'aws_lambda_ric'

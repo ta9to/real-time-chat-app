@@ -207,6 +207,7 @@ GEM
     parser (3.3.6.0)
       ast (~> 2.4.1)
       racc
+    pg (1.5.9)
     psych (5.2.2)
       date
       stringio
@@ -372,6 +373,7 @@ DEPENDENCIES
   omniauth-github
   omniauth-google-oauth2
   omniauth-rails_csrf_protection (~> 0.1)
+  pg
   puma (>= 5.0)
   rails (~> 7.2.0)
   rubocop-rails-omakase

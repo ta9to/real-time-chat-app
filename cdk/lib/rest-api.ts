@@ -3,12 +3,23 @@ import { Construct } from 'constructs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 import * as path from 'path';
 
 export interface RestApiConstructProps {
     /** RAILS_MASTER_KEY */
-    railsMasterKey: string,
+    railsMasterKey: string;
+
+    // 以下を追加: DB接続情報・VPC・セキュリティグループ
+    dbHost?: string;
+    dbPort?: number;
+    dbName?: string;
+    dbUser?: string;
+    dbPassword?: string;
+
+    vpc?: ec2.IVpc;
+    securityGroups?: ec2.ISecurityGroup[];
 }
 
 /**
@@ -38,14 +49,19 @@ export class RestApiConstruct extends Construct {
             exclude: ['.git/**', 'cdk/**', 'test/**'],
         });
 
-        // Environment variables for Rails REST API container
-        const apiContainerEnvironment = {
+        // 環境変数をまとめる (DB接続情報を追加)
+        const apiContainerEnvironment: { [key: string]: string } = {
             BOOTSNAP_CACHE_DIR: '/tmp/cache',
             RAILS_ENV: 'production',
             RAILS_MASTER_KEY: props.railsMasterKey,
             RAILS_RELATIVE_URL_ROOT: '/default',
             RAILS_LOG_TO_STDOUT: '1',
         };
+        if (props.dbHost)      apiContainerEnvironment.DB_HOST = props.dbHost;
+        if (props.dbPort)      apiContainerEnvironment.DB_PORT = props.dbPort.toString();
+        if (props.dbName)      apiContainerEnvironment.DB_NAME = props.dbName;
+        if (props.dbUser)      apiContainerEnvironment.DB_USER = props.dbUser;
+        if (props.dbPassword)  apiContainerEnvironment.DB_PASSWORD = props.dbPassword;
 
         // Lambda function for Lambda proxy integration of AWS API Gateway REST API
         const apiFunction = new lambda.DockerImageFunction(this, 'ApiFunction', {
@@ -56,7 +72,11 @@ export class RestApiConstruct extends Construct {
             environment: apiContainerEnvironment,
 
             timeout: cdk.Duration.minutes(1),
-            tracing: lambda.Tracing.ACTIVE,
+            tracing: cdk.aws_lambda.Tracing.ACTIVE,
+
+            // VPC 内で実行する場合は、以下を設定
+            vpc: props.vpc,
+            securityGroups: props.securityGroups,
         });
 
         // AWS API Gateway REST API using Rails as Lambda proxy integration

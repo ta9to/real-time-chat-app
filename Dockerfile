@@ -9,7 +9,7 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
       libvips \
-      libsqlite3-dev \
+      libpq-dev  \
       ca-certificates && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -30,6 +30,8 @@ RUN bundle exec bootsnap precompile app/ lib/
 RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
 FROM public.ecr.aws/lambda/ruby:3.3
+
+RUN dnf install -y postgresql-libs && dnf clean all
 
 WORKDIR /var/task
 

@@ -1,9 +1,11 @@
 <h1><%= @room.name %></h1>
 <% if session[:user_id] %>
+  <% user = User.find_by(id: session[:user_id]) %>
   <p>ログイン中:
-    ID: <%= session[:user_id] %>
-    名前: <%= User.find(session[:user_id]).name %>
+    ID: <%= user.id %>
+    名前: <%= user.name %>
   </p>
+  <%= link_to "プロフィール編集", edit_user_path(user), class: "btn btn-primary" %>
 <% else %>
   <p>ログインしていません</p>
 <% end %>

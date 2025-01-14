@@ -1,0 +1,21 @@
+<%= form_with(model: @user, local: true) do |f| %>
+  <div>
+    <%= f.label :status, "ステータス" %><br>
+    <%= f.select :status, User.statuses.keys.map {|k| [k, k]} %>
+  </div>
+
+  <div>
+    <%= f.label :avatar, "アバター画像" %><br>
+    <% if @user.avatar.attached? %>
+      <%= image_tag url_for(@user.avatar), alt: "アバター" %>
+    <% else %>
+      <p>まだ画像が設定されていません</p>
+    <% end %>
+    <br>
+    <%= f.file_field :avatar %>
+  </div>
+
+  <div>
+    <%= f.submit "保存" %>
+  </div>
+<% end %>

@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   get "/auth/:provider/callback", to: "sessions#omniauth"
   get "/auth/failure", to: redirect("/login")
 
-  resources :users, only: [ :create ]
+  resources :users, only: [ :create, :show, :edit, :update ]
   resources :rooms, only: [ :show ]
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

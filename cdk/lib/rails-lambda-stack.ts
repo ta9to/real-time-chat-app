@@ -5,6 +5,9 @@ import { RestApiConstruct } from './rest-api';
 import { HttpApiConstruct } from './http-api';
 import { DatabaseConstruct } from './database-construct';
 import { BastionConstruct } from './bastion-construct';
+import { StorageConstruct } from './storage-construct';
+
+import { aws_iam as iam, aws_ec2 as ec2, aws_lambda as lambda } from 'aws-cdk-lib';
 
 export interface RailsLambdaStackProps extends cdk.StackProps {
     /** RAILS_MASTER_KEY */
@@ -22,6 +25,11 @@ export class RailsLambdaStack extends cdk.Stack {
             keyPairName: 'bastion',
         });
 
+        const storageConstruct = new StorageConstruct(this, 'StorageConstruct', {
+            bucketName: 'real-time-chat-app-activestorage-bucket',
+            removalPolicy: cdk.RemovalPolicy.DESTROY, // 課題アプリなのでDESTROYでいい
+        });
+
         new RestApiConstruct(this, 'Rest', {
             railsMasterKey: props.railsMasterKey,
 
@@ -36,7 +44,7 @@ export class RailsLambdaStack extends cdk.Stack {
             securityGroups: [dbConstruct.dbSecurityGroup],
         });
 
-        new HttpApiConstruct(this, 'Http', {
+        const httpApi = new HttpApiConstruct(this, 'Http', {
             railsMasterKey: props.railsMasterKey,
 
             dbHost: dbConstruct.dbEndpoint,
@@ -48,5 +56,8 @@ export class RailsLambdaStack extends cdk.Stack {
             vpc: dbConstruct.vpc,
             securityGroups: [dbConstruct.dbSecurityGroup],
         });
+        const railsFunction = httpApi.lambdaFunction;
+        // LambdaからS3へのread/write権限付与
+        storageConstruct.bucket.grantReadWrite(railsFunction);
     }
 }

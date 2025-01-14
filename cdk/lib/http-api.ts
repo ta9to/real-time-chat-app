@@ -30,6 +30,9 @@ export interface HttpApiConstructProps {
  * CDK construct to create API Gateway HTTP API with Lambda proxy integration 2.0
  */
 export class HttpApiConstruct extends Construct {
+
+    public readonly lambdaFunction: lambda.DockerImageFunction;
+
     constructor(scope: Construct, id: string, props: HttpApiConstructProps) {
         super(scope, id);
 
@@ -61,7 +64,7 @@ export class HttpApiConstruct extends Construct {
         if (props.dbPassword) env['DB_PASSWORD'] = props.dbPassword;
 
         // Lambda function
-        const apiFunction = new lambda.DockerImageFunction(this, 'ApiFunction', {
+        this.lambdaFunction = new lambda.DockerImageFunction(this, 'ApiFunction', {
             architecture: lambda.Architecture.ARM_64,
             memorySize: 2048,
             code: apiContainerImage,
@@ -80,7 +83,7 @@ export class HttpApiConstruct extends Construct {
         // HTTP API
         const railsHttpApi = new apigwv2.HttpApi(this, 'Api', {
             apiName: 'RailsHttpApi',
-            defaultIntegration: new apigwv2_integ.HttpLambdaIntegration('RailsHttpApiProxy', apiFunction, {
+            defaultIntegration: new apigwv2_integ.HttpLambdaIntegration('RailsHttpApiProxy', this.lambdaFunction, {
                 payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_2_0,
             }),
         });

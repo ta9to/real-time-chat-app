@@ -44,6 +44,7 @@ gem 'pg'
 
 group :production do
   gem 'aws_lambda_ric'
+  gem 'aws-sdk-s3'
 end
 
 group :development, :test do

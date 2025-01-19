@@ -79,21 +79,18 @@ class RoomsController < ApplicationController
   def direct
     target_user = User.find(params[:user_id])
     if target_user == current_user
-      redirect_to rooms_path, alert: "自分自身とはチャットできません" and return
+      render json: { error: "自分自身とはチャットできません" }, status: :unprocessable_entity
+      return
     end
 
-    # 既に同じ2人だけが参加しているルームがあれば使う
     @room = find_private_room_with(target_user)
-
     unless @room
-      # なければ新規作成
       @room = Room.create!(name: "#{current_user.name} & #{target_user.name}", is_private: true)
-      # room_usersに2人を追加
       @room.room_users.create!(user: current_user)
       @room.room_users.create!(user: target_user)
     end
 
-    redirect_to @room
+    render json: { id: @room.id, name: @room.name, is_private: @room.is_private }
   end
 
   private

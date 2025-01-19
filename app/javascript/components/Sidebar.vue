@@ -46,6 +46,19 @@
       </ul>
     </div>
 
+    <hr class="my-2" />
+
+    <!-- Users List -->
+    <div class="mt-2">
+      <h3 class="font-bold mb-2">ユーザー一覧</h3>
+      <ul class="space-y-1">
+        <li v-for="u in users" :key="u.id" class="p-2 hover:bg-gray-200 cursor-pointer"
+            @click="startDirectChat(u.id)">
+          {{ u.name }} ({{ u.status }})
+        </li>
+      </ul>
+    </div>
+
     <div class="mt-4">
       <form action="/logout" method="post" @submit="onLogoutSubmit">
         <input type="hidden" name="_method" value="delete">
@@ -69,6 +82,7 @@ export default {
     return {
       user: null,
       rooms: [],
+      users: [],
       csrfToken: ''
     }
   },
@@ -94,8 +108,33 @@ export default {
     } catch (err) {
       console.error(err)
     }
+
+    // ユーザリストを取得
+    try {
+      let resp = await fetch("/users.json")
+      if (!resp.ok) throw new Error("Users fetch failed")
+      let data = await resp.json()
+      this.users = data
+    } catch (err) {
+      console.error(err)
+    }
   },
   methods: {
+    async startDirectChat(userId) {
+      try {
+        const resp = await fetch(`/rooms/direct.json?user_id=${userId}`)
+        if (!resp.ok) {
+          const errData = await resp.json()
+          alert(errData.error || "ルーム取得失敗")
+          return
+        }
+        const roomData = await resp.json()
+        this.$router.push({ name: 'room', params: { id: roomData.id } })
+      } catch (err) {
+        console.error(err)
+        alert("ルーム取得に失敗しました")
+      }
+    },
   }
 }
 </script>

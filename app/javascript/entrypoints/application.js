@@ -29,6 +29,7 @@ console.log('Visit the guide for more information: ', 'https://vite-ruby.netlify
 
 import { createApp } from 'vue'
 import App from '../components/App.vue'
+import router from '../router.js'
 
 document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('vue-app')
@@ -40,5 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create and mount the Vue app
     const app = createApp(App, { roomId, currentUserId })
+    app.use(router)
     app.mount(el)
 })

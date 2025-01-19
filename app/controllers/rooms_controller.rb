@@ -93,6 +93,21 @@ class RoomsController < ApplicationController
     render json: { id: @room.id, name: @room.name, is_private: @room.is_private }
   end
 
+  def update
+    @room = current_user.rooms.find(params[:id])
+    if @room.update(room_params)
+      render json: { id: @room.id, name: @room.name, is_private: @room.is_private }
+    else
+      render json: { errors: @room.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @room = current_user.rooms.find(params[:id])
+    @room.destroy
+    render json: { message: "Room deleted" }
+  end
+
   private
 
   # 既存のprivate room (is_private=true) で、かつ

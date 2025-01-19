@@ -18,7 +18,15 @@
 
     <!-- Room List -->
     <div class="flex-1 overflow-auto">
-      <h3 class="font-bold mb-2">ルーム一覧</h3>
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold">ルーム一覧</h3>
+        <!-- plus icon → open modal -->
+        <svg @click="showNewRoomModal = true" xmlns="http://www.w3.org/2000/svg"
+             class="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800" fill="none"
+             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+      </div>
       <ul class="space-y-1">
         <li v-for="r in rooms" :key="r.id" class="p-2 hover:bg-gray-200">
           <router-link
@@ -59,6 +67,31 @@
       </ul>
     </div>
 
+    <!-- modal for new room -->
+    <div v-if="showNewRoomModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-4 w-96 rounded shadow">
+        <h2 class="text-xl font-bold mb-2">新規ルーム作成</h2>
+        <form @submit.prevent="createRoom">
+          <div class="mb-3">
+            <label class="block mb-1">ルーム名</label>
+            <input v-model="newRoomName" class="border p-2 w-full" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label class="flex items-center">
+              <input type="checkbox" v-model="newRoomPrivate" class="mr-2" />
+              プライベート
+            </label>
+          </div>
+          <div class="text-right">
+            <button type="button" @click="closeNewRoomModal" class="border px-3 py-1 mr-2 rounded">キャンセル</button>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+              作成
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div class="mt-4">
       <form action="/logout" method="post" @submit="onLogoutSubmit">
         <input type="hidden" name="_method" value="delete">
@@ -83,7 +116,11 @@ export default {
       user: null,
       rooms: [],
       users: [],
-      csrfToken: ''
+      csrfToken: '',
+      // new room modal
+      showNewRoomModal: false,
+      newRoomName: '',
+      newRoomPrivate: false
     }
   },
   async created() {
@@ -120,6 +157,40 @@ export default {
     }
   },
   methods: {
+    closeNewRoomModal() {
+      this.showNewRoomModal = false
+      this.newRoomName = ''
+      this.newRoomPrivate = false
+    },
+    async createRoom() {
+      // POST /rooms.json
+      try {
+        const resp = await fetch("/rooms.json", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": this.csrfToken
+          },
+          body: JSON.stringify({
+            room: {
+              name: this.newRoomName,
+              is_private: this.newRoomPrivate
+            }
+          })
+        })
+        if (!resp.ok) {
+          const err = await resp.json()
+          alert(err.errors || "ルーム作成エラー")
+          return
+        }
+        const data = await resp.json()
+        this.rooms.push({ id: data.id, name: data.name, is_private: !!data.is_private })
+        this.closeNewRoomModal()
+      } catch (error) {
+        console.error(error)
+        alert("新規ルーム作成に失敗しました")
+      }
+    },
     async startDirectChat(userId) {
       try {
         const resp = await fetch(`/rooms/direct.json?user_id=${userId}`)

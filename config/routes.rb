@@ -9,7 +9,7 @@ Rails.application.routes.draw do
 
   resources :users, only: [:index]
   get "rooms/direct", to: "rooms#direct", as: :direct_room
-  resources :rooms, only: [:index, :create, :show, :new ] do
+  resources :rooms, only: [:index, :show, :create, :update, :destroy] do
     resources :messages, only: [:create]
   end
 

@@ -41,6 +41,8 @@ gem "omniauth-github"
 gem "dotenv-rails", groups: [ :development, :test ]
 gem 'omniauth-rails_csrf_protection', '~> 0.1'
 gem 'pg'
+gem "tailwindcss-rails"
+gem 'vite_rails'
 
 group :production do
   gem 'aws_lambda_ric'
@@ -56,6 +58,8 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  gem 'faker'
 end
 
 group :development do

@@ -1,22 +1,49 @@
-<h1>ログイン</h1>
-<%= link_to "Googleでログイン", "/auth/google_oauth2", class: "btn btn-primary" %>
-<%= link_to "GitHubでログイン", "/auth/github", class: "btn btn-secondary" %>
+<div class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="w-full max-w-md bg-white rounded shadow p-6">
+    <h1 class="text-2xl font-bold mb-4">ログイン</h1>
 
-<% if flash[:alert] %>
-  <div style="color: red;">
-    <%= flash[:alert] %>
-  </div>
-<% end %>
+    <!-- SNSログインボタン -->
+    <div class="space-x-2 mb-4">
+      <%= link_to "Googleでログイン", "/auth/google_oauth2",
+                  class: "inline-block bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded" %>
+      <%= link_to "GitHubでログイン", "/auth/github",
+                  class: "inline-block bg-gray-700 hover:bg-black text-white px-4 py-2 rounded" %>
+    </div>
 
-<%= form_with url: login_path, local: true do |form| %>
-  <div>
-    <label for="session_email">Email</label><br>
-    <%= form.text_field :email, name: "session[email]" %>
+    <!-- フラッシュメッセージ -->
+    <% if flash[:notice] %>
+      <div class="text-green-500 mb-4">
+        <%= flash[:notice] %>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div class="text-red-500 mb-4">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <!-- ログインフォーム -->
+    <%= form_with url: login_path, local: true do |form| %>
+      <div class="mb-4">
+        <label for="session_email" class="block mb-1 text-sm font-bold text-gray-700">Email</label>
+        <%= form.text_field :email,
+                            name: "session[email]",
+                            id: "session_email",
+                            class: "border border-gray-300 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      </div>
+
+      <div class="mb-6">
+        <label for="session_password" class="block mb-1 text-sm font-bold text-gray-700">Password</label>
+        <%= form.password_field :password,
+                                name: "session[password]",
+                                id: "session_password",
+                                class: "border border-gray-300 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      </div>
+
+      <div class="text-right">
+        <%= form.submit "ログイン",
+                        class: "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold" %>
+      </div>
+    <% end %>
   </div>
-  <div>
-    <label for="session_password">Password</label><br>
-    <%= form.password_field :password, name: "session[password]" %>
-  </div>
-  <br>
-  <%= form.submit "ログイン" %>
-<% end %>
+</div>

@@ -35,30 +35,14 @@
 
     <!-- edit modal -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div class="bg-white p-4 w-96 rounded shadow">
-        <h2 class="text-xl font-bold mb-2">ルーム編集</h2>
-        <form @submit.prevent="updateRoom">
-          <div class="mb-3">
-            <label class="block mb-1">ルーム名</label>
-            <input v-model="editRoomName" class="border p-2 w-full" type="text" required />
-          </div>
-          <div class="mb-3">
-            <label class="flex items-center">
-              <input type="checkbox" v-model="editRoomPrivate" class="mr-2" />
-              プライベート
-            </label>
-          </div>
-          <div class="flex justify-between">
-            <button type="button" @click="deleteRoom" class="text-red-500">削除</button>
-            <div>
-              <button type="button" @click="closeEditModal" class="border px-3 py-1 mr-2 rounded">キャンセル</button>
-              <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-                更新
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
+      <RoomForm
+          :isEdit="true"
+          :initialName="room?.name || ''"
+          :initialPrivate="room?.is_private || false"
+          @submit-room="handleUpdateSubmit"
+          @delete="handleDelete"
+          @close="closeEditModal"
+      />
     </div>
 
     <!-- Form -->
@@ -70,15 +54,20 @@
 </template>
 
 <script>
+import RoomForm from '../components/RoomForm.vue'
+import { useRoomsStore } from '../stores/rooms'
+
 export default {
   name: "ChatRoom",
+  components: { RoomForm },
   beforeRouteUpdate(to, from, next) {
     this.fetchRoom(to.params.id)
     next()
   },
   computed: {
-    roomId() {
-      return this.$route.params.id
+    roomId() { return this.$route.params.id },
+    roomsStore() {
+      return useRoomsStore()
     }
   },
   data() {
@@ -92,7 +81,6 @@ export default {
     }
   },
   async created() {
-    this.roomId = this.$route.params.id
     this.fetchRoom(this.roomId)
   },
   methods: {
@@ -100,64 +88,36 @@ export default {
       const resp = await fetch(`/rooms/${id}.json`)
       const data = await resp.json()
       this.room = data
+      this.editRoomName = data.name
+      this.editRoomPrivate = data.is_private
       this.messages = data.messages || []
     },
     closeEditModal() {
       this.showEditModal = false
     },
-    async updateRoom() {
-      const roomId = this.room.id
-      const csrfToken = document.querySelector('[name="csrf-token"]').content
-      try {
-        const resp = await fetch(`/rooms/${roomId}.json`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken
-          },
-          body: JSON.stringify({
-            room: {
-              name: this.editRoomName,
-              is_private: this.editRoomPrivate
-            }
-          })
-        })
-        if (!resp.ok) {
-          const err = await resp.json()
-          alert(err.errors || "ルーム更新エラー")
-          return
-        }
-        const updated = await resp.json()
-        // reflect changes
+    async handleUpdateSubmit({ name, isPrivate }) {
+      const store = useRoomsStore()
+      const updated = await store.updateRoom({
+        roomId: this.room?.id,
+        name,
+        isPrivate,
+        csrfToken: document.querySelector('[name="csrf-token"]').content
+      })
+      if (updated) {
         this.room.name = updated.name
         this.room.is_private = updated.is_private
-        this.closeEditModal()
-      } catch (error) {
-        console.error(error)
-        alert("ルーム更新に失敗しました")
+        this.showEditModal = false
       }
     },
-    async deleteRoom() {
+    async handleDelete() {
       if(!confirm("本当に削除しますか？")) return
-      const roomId = this.room.id
-      const csrfToken = document.querySelector('[name="csrf-token"]').content
-      try {
-        const resp = await fetch(`/rooms/${roomId}.json`, {
-          method: "DELETE",
-          headers: {
-            "X-CSRF-Token": csrfToken
-          }
-        })
-        if(!resp.ok) {
-          alert("削除に失敗しました")
-          return
-        }
-        // 成功 → ルーム一覧へ戻る or トップへ
-        this.$router.push({ name:'home' })
-        // あるいは何かサイドバーに反映するなど
-      } catch (error) {
-        console.error(error)
-        alert("ルーム削除に失敗しました")
+      const store = useRoomsStore()
+      const ok = await store.deleteRoom({
+        roomId: this.room?.id,
+        csrfToken: document.querySelector('[name="csrf-token"]').content
+      })
+      if (ok) {
+        // todo rooms.firstに飛ばす
       }
     },
     async submitMessage() {

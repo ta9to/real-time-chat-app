@@ -28,7 +28,7 @@
         </svg>
       </div>
       <ul class="space-y-1">
-        <li v-for="r in rooms" :key="r.id" class="p-2 hover:bg-gray-200">
+        <li v-for="r in roomsStore.rooms" :key="r.id" class="p-2 hover:bg-gray-200">
           <router-link
               :to="{ name: 'room', params: { id: r.id } }"
               class="flex items-center"
@@ -69,27 +69,13 @@
 
     <!-- modal for new room -->
     <div v-if="showNewRoomModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div class="bg-white p-4 w-96 rounded shadow">
-        <h2 class="text-xl font-bold mb-2">新規ルーム作成</h2>
-        <form @submit.prevent="createRoom">
-          <div class="mb-3">
-            <label class="block mb-1">ルーム名</label>
-            <input v-model="newRoomName" class="border p-2 w-full" type="text" required />
-          </div>
-          <div class="mb-3">
-            <label class="flex items-center">
-              <input type="checkbox" v-model="newRoomPrivate" class="mr-2" />
-              プライベート
-            </label>
-          </div>
-          <div class="text-right">
-            <button type="button" @click="closeNewRoomModal" class="border px-3 py-1 mr-2 rounded">キャンセル</button>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-              作成
-            </button>
-          </div>
-        </form>
-      </div>
+      <RoomForm
+          :isEdit="false"
+          :initialName="''"
+          :initialPrivate="false"
+          @submit-room="handleCreateSubmit"
+          @close="closeNewRoomModal"
+      />
     </div>
 
     <div class="mt-4">
@@ -105,22 +91,26 @@
 </template>
 
 <script>
+import RoomForm from '../components/RoomForm.vue'
+import { useRoomsStore } from '../stores/rooms'
+
 export default {
   name: "Sidebar",
-  props: {
-    roomId: String,
-    currentUserId: String
-  },
+  components: { RoomForm },
   data() {
     return {
       user: null,
-      rooms: [],
       users: [],
       csrfToken: '',
       // new room modal
       showNewRoomModal: false,
       newRoomName: '',
       newRoomPrivate: false
+    }
+  },
+  computed: {
+    roomsStore() {
+      return useRoomsStore()
     }
   },
   async created() {
@@ -136,15 +126,8 @@ export default {
       this.user = JSON.parse(el.dataset.currentUser)
     }
 
-    // ルームリストを取得
-    try {
-      let resp = await fetch("/rooms.json")
-      if (!resp.ok) throw new Error("Rooms fetch failed")
-      let data = await resp.json()
-      this.rooms = data
-    } catch (err) {
-      console.error(err)
-    }
+    const store = useRoomsStore()
+    await store.fetchRooms()
 
     // ユーザリストを取得
     try {
@@ -159,36 +142,18 @@ export default {
   methods: {
     closeNewRoomModal() {
       this.showNewRoomModal = false
-      this.newRoomName = ''
-      this.newRoomPrivate = false
     },
-    async createRoom() {
-      // POST /rooms.json
-      try {
-        const resp = await fetch("/rooms.json", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": this.csrfToken
-          },
-          body: JSON.stringify({
-            room: {
-              name: this.newRoomName,
-              is_private: this.newRoomPrivate
-            }
-          })
-        })
-        if (!resp.ok) {
-          const err = await resp.json()
-          alert(err.errors || "ルーム作成エラー")
-          return
-        }
-        const data = await resp.json()
-        this.rooms.push({ id: data.id, name: data.name, is_private: !!data.is_private })
-        this.closeNewRoomModal()
-      } catch (error) {
-        console.error(error)
-        alert("新規ルーム作成に失敗しました")
+    async handleCreateSubmit({ name, isPrivate }) {
+      console.log("Sidebar handleCreateSubmit", name);
+      const store = useRoomsStore()
+      const roomData = await store.createRoom({
+        name,
+        isPrivate,
+        csrfToken: this.csrfToken
+      })
+      if (roomData) {
+        this.showNewRoomModal = false
+        this.$router.push({ name: 'room', params: { id: roomData.id } })
       }
     },
     async startDirectChat(userId) {

@@ -1,10 +1,6 @@
 <template>
   <div class="flex h-screen">
-    <Sidebar
-        :room-id="roomId"
-        :current-user-id="currentUserId"
-        class="w-1/4 border-r"
-    />
+    <Sidebar class="w-1/4 border-r" />
     <div class="flex-1">
       <router-view />
     </div>

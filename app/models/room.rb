@@ -4,4 +4,5 @@ class Room < ApplicationRecord
   has_many :messages, dependent: :destroy
 
   validates :name, presence: true
+  validates :max_members, numericality: { only_integer: true, greater_than: 1 }
 end

@@ -1,6 +1,6 @@
 class RoomsController < ApplicationController
   before_action :require_login
-  before_action :set_room, only: [:show]
+  before_action :set_room, only: [:show, :members, :update, :destroy]
 
   def index
     @rooms = Room.all.order(:created_at)
@@ -16,8 +16,12 @@ class RoomsController < ApplicationController
     respond_to do |format|
       format.json do
         @room = Room.new(room_params)
+        if room_params[:user_ids]
+          @room.user_ids = room_params[:user_ids]
+        else
+          @room.user_ids = [current_user.id]
+        end
         if @room.save
-          RoomUser.create!(room: @room, user: current_user)
           render json: { id: @room.id, name: @room.name }, status: :ok
         else
           render json: { errors: @room.errors.full_messages }, status: :unprocessable_entity
@@ -94,8 +98,11 @@ class RoomsController < ApplicationController
   end
 
   def update
-    @room = current_user.rooms.find(params[:id])
     if @room.update(room_params)
+      if room_params[:user_ids]
+        @room.user_ids = room_params[:user_ids]
+      end
+      @room.save
       render json: { id: @room.id, name: @room.name, is_private: @room.is_private }
     else
       render json: { errors: @room.errors.full_messages }, status: :unprocessable_entity
@@ -103,9 +110,13 @@ class RoomsController < ApplicationController
   end
 
   def destroy
-    @room = current_user.rooms.find(params[:id])
     @room.destroy
     render json: { message: "Room deleted" }
+  end
+
+  def members
+    user_ids = @room.users.pluck(:id)
+    render json: user_ids
   end
 
   private
@@ -126,7 +137,6 @@ class RoomsController < ApplicationController
   end
 
   def room_params
-    # is_private は boolean, name は string
-    params.require(:room).permit(:name, :is_private)
+    params.require(:room).permit(:name, :is_private, user_ids: [])
   end
 end

@@ -73,6 +73,8 @@
           :isEdit="false"
           :initialName="''"
           :initialPrivate="false"
+          :allUsers="users"
+          :initialUserIds="[]"
           @submit-room="handleCreateSubmit"
           @close="closeNewRoomModal"
       />
@@ -143,12 +145,13 @@ export default {
     closeNewRoomModal() {
       this.showNewRoomModal = false
     },
-    async handleCreateSubmit({ name, isPrivate }) {
+    async handleCreateSubmit({ name, isPrivate, userIds }) {
       console.log("Sidebar handleCreateSubmit", name);
       const store = useRoomsStore()
       const roomData = await store.createRoom({
         name,
         isPrivate,
+        userIds,
         csrfToken: this.csrfToken
       })
       if (roomData) {

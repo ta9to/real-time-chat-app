@@ -8,7 +8,7 @@
         <h2 class="text-xl font-bold">{{ room?.name }}</h2>
       </div>
       <!-- gear icon -->
-      <svg @click="showEditModal = true" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800"
+      <svg v-if="!isRootRoom" @click="showEditModal = true" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800"
            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
               d="M10.325 4.317c.426-1.756 3.924-1.756 4.35 0a1.998 1.998 0 002.549
@@ -39,6 +39,8 @@
           :isEdit="true"
           :initialName="room?.name || ''"
           :initialPrivate="room?.is_private || false"
+          :allUsers="allUsers"
+          :initialUserIds="currentMemberIds"
           @submit-room="handleUpdateSubmit"
           @delete="handleDelete"
           @close="closeEditModal"
@@ -57,14 +59,20 @@
 import RoomForm from '../components/RoomForm.vue'
 import { useRoomsStore } from '../stores/rooms'
 
+const rootRoomId = '1'
+
 export default {
   name: "ChatRoom",
   components: { RoomForm },
   beforeRouteUpdate(to, from, next) {
     this.fetchRoom(to.params.id)
+    this.fetchMembers(to.params.id)
     next()
   },
   computed: {
+    isRootRoom() {
+      return this.roomId === rootRoomId
+    },
     roomId() { return this.$route.params.id },
     roomsStore() {
       return useRoomsStore()
@@ -73,6 +81,8 @@ export default {
   data() {
     return {
       room: null,
+      allUsers: [],
+      currentMemberIds: [],
       messages: [],
       newMessage: "",
       showEditModal: false,
@@ -82,6 +92,8 @@ export default {
   },
   async created() {
     this.fetchRoom(this.roomId)
+    this.fetchMembers(this.roomId)
+    this.fetchAllUsers()
   },
   methods: {
     async fetchRoom(id) {
@@ -92,32 +104,41 @@ export default {
       this.editRoomPrivate = data.is_private
       this.messages = data.messages || []
     },
+    async fetchMembers(id) {
+      const resp = await fetch(`/rooms/${id}/members.json`)
+      this.currentMemberIds = await resp.json()
+    },
+    async fetchAllUsers() {
+      const resp = await fetch("/users.json")
+      this.allUsers = await resp.json()
+    },
     closeEditModal() {
       this.showEditModal = false
     },
-    async handleUpdateSubmit({ name, isPrivate }) {
+    async handleUpdateSubmit({ name, isPrivate, userIds }) {
       const store = useRoomsStore()
       const updated = await store.updateRoom({
         roomId: this.room?.id,
         name,
         isPrivate,
+        userIds,
         csrfToken: document.querySelector('[name="csrf-token"]').content
       })
       if (updated) {
-        this.room.name = updated.name
-        this.room.is_private = updated.is_private
-        this.showEditModal = false
+        this.room = updated
+        this.currentMemberIds = userIds
+        this.closeEditModal()
       }
     },
     async handleDelete() {
-      if(!confirm("本当に削除しますか？")) return
       const store = useRoomsStore()
       const ok = await store.deleteRoom({
         roomId: this.room?.id,
         csrfToken: document.querySelector('[name="csrf-token"]').content
       })
       if (ok) {
-        // todo rooms.firstに飛ばす
+        this.closeEditModal()
+        this.$router.push({ name: 'room', params: { id: rootRoomId } })
       }
     },
     async submitMessage() {

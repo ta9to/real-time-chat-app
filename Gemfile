@@ -41,7 +41,6 @@ gem "omniauth-github"
 gem "dotenv-rails", groups: [ :development, :test ]
 gem 'omniauth-rails_csrf_protection', '~> 0.1'
 gem 'pg'
-gem "tailwindcss-rails"
 gem 'vite_rails'
 
 group :production do

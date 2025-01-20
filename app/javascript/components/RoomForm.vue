@@ -15,6 +15,29 @@
         </label>
       </div>
 
+      <!-- メンバー選択 (プライベートでない場合 or 常に表示) -->
+      <div class="mb-3" v-if="!formPrivate">
+        <label class="block mb-1">参加メンバー</label>
+        <!-- 複数選択SELECT -->
+        <select
+            multiple
+            class="border p-2 w-full h-32"
+            v-model="selectedUserIds"
+            size="8"
+        >
+          <option
+              v-for="u in allUsers"
+              :value="u.id"
+              :key="u.id"
+          >
+            {{ u.name }}
+          </option>
+        </select>
+        <p class="text-gray-500 text-sm mt-1">
+          (Ctrl/Shift + クリックで複数選択)
+        </p>
+      </div>
+
       <div class="flex justify-between items-center">
         <!-- 削除ボタン(編集モードのみ) -->
         <button
@@ -42,19 +65,23 @@ export default {
   props: {
     isEdit: { type: Boolean, default: false },
     initialName: { type: String, default: "" },
-    initialPrivate: { type: Boolean, default: false }
+    initialPrivate: { type: Boolean, default: false },
+    allUsers: { type: Array, default: () => [] },
+    initialUserIds: { type: Array, default: () => [] }
   },
   data() {
     return {
       formName: this.initialName,
       formPrivate: this.initialPrivate,
+      selectedUserIds: [...this.initialUserIds]
     }
   },
   methods: {
     onSubmit() {
       this.$emit('submit-room', {
         name: this.formName,
-        isPrivate: this.formPrivate
+        isPrivate: this.formPrivate,
+        userIds: this.selectedUserIds
       })
     }
   }

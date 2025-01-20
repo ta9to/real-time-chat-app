@@ -11,6 +11,9 @@ Rails.application.routes.draw do
   get "rooms/direct", to: "rooms#direct", as: :direct_room
   resources :rooms, only: [:index, :show, :create, :update, :destroy] do
     resources :messages, only: [:create]
+    member do
+      get :members, defaults: { format: :json }
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

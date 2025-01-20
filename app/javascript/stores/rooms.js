@@ -15,7 +15,7 @@ export const useRoomsStore = defineStore('rooms', {
                 console.error(err)
             }
         },
-        async createRoom({ name, isPrivate, csrfToken }) {
+        async createRoom({ name, isPrivate, userIds, csrfToken }) {
             try {
                 const resp = await fetch("/rooms.json", {
                     method: "POST",
@@ -24,7 +24,11 @@ export const useRoomsStore = defineStore('rooms', {
                         "X-CSRF-Token": csrfToken
                     },
                     body: JSON.stringify({
-                        room: { name, is_private: isPrivate }
+                        room: {
+                            name: name,
+                            is_private: isPrivate,
+                            user_ids: userIds,
+                        }
                     })
                 })
                 if (!resp.ok) {
@@ -40,7 +44,7 @@ export const useRoomsStore = defineStore('rooms', {
                 alert("新規ルーム作成に失敗しました")
             }
         },
-        async updateRoom({ roomId, name, isPrivate, csrfToken }) {
+        async updateRoom({ roomId, name, isPrivate, userIds, csrfToken }) {
             try {
                 const resp = await fetch(`/rooms/${roomId}.json`, {
                     method: "PATCH",
@@ -49,7 +53,11 @@ export const useRoomsStore = defineStore('rooms', {
                         "X-CSRF-Token": csrfToken
                     },
                     body: JSON.stringify({
-                        room: { name, is_private: isPrivate }
+                        room: {
+                            name: name,
+                            is_private: isPrivate,
+                            user_ids: userIds,
+                        }
                     })
                 })
                 if (!resp.ok) {

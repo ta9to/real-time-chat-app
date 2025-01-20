@@ -50,7 +50,7 @@ export class BastionConstruct extends Construct {
                 subnetType: ec2.SubnetType.PUBLIC,
             },
             instanceType: props.instanceType ?? ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
-            machineImage: ec2.MachineImage.latestAmazonLinux(),
+            machineImage: ec2.MachineImage.latestAmazonLinux2(),
             securityGroup: bastionSG,
             keyPair: keyPair,
         });

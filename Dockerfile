@@ -8,8 +8,11 @@ WORKDIR /app
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
+      libyaml-dev \
       libvips \
       libpq-dev  \
+      nodejs \
+      npm \
       ca-certificates && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -22,6 +25,10 @@ COPY Gemfile Gemfile.lock ./
 
 RUN bundle install && \
     bundle exec bootsnap precompile --gemfile
+
+COPY package.json package-lock.json ./
+
+RUN npm install
 
 COPY . .
 

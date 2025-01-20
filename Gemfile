@@ -39,7 +39,7 @@ gem "omniauth"
 gem "omniauth-google-oauth2"
 gem "omniauth-github"
 gem "dotenv-rails", groups: [ :development, :test ]
-gem 'omniauth-rails_csrf_protection', '~> 0.1'
+gem 'omniauth-rails_csrf_protection', '~> 1.0'
 gem 'pg'
 gem 'vite_rails'
 

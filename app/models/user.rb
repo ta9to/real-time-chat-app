@@ -8,11 +8,4 @@ class User < ApplicationRecord
 
   validates :provider, :uid, presence: true
   validates :status, length: { maximum: 50 }
-
-  enum status: {
-    offline: "offline",
-    coding: "coding",
-    busy: "busy",
-    away: "away"
-  }, _default: "offline"
 end

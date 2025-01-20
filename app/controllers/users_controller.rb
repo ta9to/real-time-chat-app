@@ -13,11 +13,18 @@ class UsersController < ApplicationController
   end
 
   def update
-    if @user.update(user_params)
-      redirect_to @user, notice: "プロフィールを更新しました。"
+    user = current_user
+    if user.update(user_params)
+      user_avatar_url = if user.avatar.attached?
+        url_for(user.avatar)
+      else
+        nil
+      end
+      render json: user
+        .as_json(only: [:id, :name, :status])
+        .merge(avatar_url: user_avatar_url)
     else
-      flash.now[:alert] = "プロフィールの更新に失敗しました。"
-      render :edit
+      render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
     end
   end
 

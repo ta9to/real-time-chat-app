@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   get "/auth/:provider/callback", to: "sessions#omniauth"
   get "/auth/failure", to: redirect("/login")
 
-  resources :users, only: [:index]
+  resources :users, only: [:index, :update]
   get "rooms/direct", to: "rooms#direct", as: :direct_room
   resources :rooms, only: [:index, :show, :create, :update, :destroy] do
     resources :messages, only: [:create]

@@ -6,6 +6,7 @@ import { HttpApiConstruct } from './http-api';
 import { DatabaseConstruct } from './database-construct';
 import { BastionConstruct } from './bastion-construct';
 import { StorageConstruct } from './storage-construct';
+import { RedisConstruct } from './redis-construct';
 
 import { aws_iam as iam, aws_ec2 as ec2, aws_lambda as lambda } from 'aws-cdk-lib';
 
@@ -30,34 +31,38 @@ export class RailsLambdaStack extends cdk.Stack {
             removalPolicy: cdk.RemovalPolicy.DESTROY, // 課題アプリなのでDESTROYでいい
         });
 
+        const redisConstruct = new RedisConstruct(this, 'RedisConstruct', {
+            vpc: dbConstruct.vpc,
+            securityGroup: dbConstruct.dbSecurityGroup
+        });
+
         new RestApiConstruct(this, 'Rest', {
             railsMasterKey: props.railsMasterKey,
-
-            // DB接続情報
             dbHost: dbConstruct.dbEndpoint,
             dbPort: dbConstruct.dbPort,
             dbName: dbConstruct.dbName,
             dbUser: dbConstruct.dbUser,
             dbPassword: dbConstruct.dbPassword,
-
             vpc: dbConstruct.vpc,
             securityGroups: [dbConstruct.dbSecurityGroup],
         });
 
         const httpApi = new HttpApiConstruct(this, 'Http', {
             railsMasterKey: props.railsMasterKey,
-
             dbHost: dbConstruct.dbEndpoint,
             dbPort: dbConstruct.dbPort,
             dbName: dbConstruct.dbName,
             dbUser: dbConstruct.dbUser,
             dbPassword: dbConstruct.dbPassword,
-
             vpc: dbConstruct.vpc,
             securityGroups: [dbConstruct.dbSecurityGroup],
         });
         const railsFunction = httpApi.lambdaFunction;
+
         // LambdaからS3へのread/write権限付与
         storageConstruct.bucket.grantReadWrite(railsFunction);
+        // redis env
+        railsFunction.addEnvironment('REDIS_HOST', redisConstruct.host);
+        railsFunction.addEnvironment('REDIS_PORT', redisConstruct.port.toString());
     }
 }

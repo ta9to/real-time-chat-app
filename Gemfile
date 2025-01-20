@@ -46,6 +46,7 @@ gem 'vite_rails'
 group :production do
   gem 'aws_lambda_ric'
   gem 'aws-sdk-s3'
+  gem 'redis-actionpack'
 end
 
 group :development, :test do

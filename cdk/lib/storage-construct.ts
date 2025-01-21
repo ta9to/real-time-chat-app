@@ -17,7 +17,7 @@ export class StorageConstruct extends Construct {
             removalPolicy: props?.removalPolicy ?? RemovalPolicy.RETAIN,
             // encryption: s3.BucketEncryption.S3_MANAGED,
             // versioned: true,
-            // publicReadAccess: false,
+            publicReadAccess: false,
             // blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
         });
 

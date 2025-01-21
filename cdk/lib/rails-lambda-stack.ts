@@ -6,9 +6,8 @@ import { HttpApiConstruct } from './http-api';
 import { DatabaseConstruct } from './database-construct';
 import { BastionConstruct } from './bastion-construct';
 import { StorageConstruct } from './storage-construct';
+import { CloudFrontConstruct } from './cloudfront-construct';
 import { RedisConstruct } from './redis-construct';
-
-import { aws_iam as iam, aws_ec2 as ec2, aws_lambda as lambda } from 'aws-cdk-lib';
 
 export interface RailsLambdaStackProps extends cdk.StackProps {
     /** RAILS_MASTER_KEY */
@@ -58,11 +57,16 @@ export class RailsLambdaStack extends cdk.Stack {
             securityGroups: [dbConstruct.dbSecurityGroup],
         });
         const railsFunction = httpApi.lambdaFunction;
-
-        // LambdaからS3へのread/write権限付与
         storageConstruct.bucket.grantReadWrite(railsFunction);
+
         // redis env
         railsFunction.addEnvironment('REDIS_HOST', redisConstruct.host);
         railsFunction.addEnvironment('REDIS_PORT', redisConstruct.port.toString());
+
+        const cfConstruct = new CloudFrontConstruct(this, 'CloudFront', {
+            assetsBucket: storageConstruct.bucket,
+        });
+
+        railsFunction.addEnvironment('CLOUDFRONT_DOMAIN', cfConstruct.distribution.domainName);
     }
 }

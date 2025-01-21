@@ -32,6 +32,7 @@ export interface HttpApiConstructProps {
 export class HttpApiConstruct extends Construct {
 
     public readonly lambdaFunction: lambda.DockerImageFunction;
+    public readonly railsHttpApi: apigwv2.HttpApi;
 
     constructor(scope: Construct, id: string, props: HttpApiConstructProps) {
         super(scope, id);
@@ -81,7 +82,7 @@ export class HttpApiConstruct extends Construct {
         });
 
         // HTTP API
-        const railsHttpApi = new apigwv2.HttpApi(this, 'Api', {
+        this.railsHttpApi = new apigwv2.HttpApi(this, 'Api', {
             apiName: 'RailsHttpApi',
             defaultIntegration: new apigwv2_integ.HttpLambdaIntegration('RailsHttpApiProxy', this.lambdaFunction, {
                 payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_2_0,
@@ -89,7 +90,7 @@ export class HttpApiConstruct extends Construct {
         });
 
         new cdk.CfnOutput(this, 'HttpApiUrl', {
-            value: railsHttpApi.url!,
+            value: this.railsHttpApi.url!,
         });
     }
 }

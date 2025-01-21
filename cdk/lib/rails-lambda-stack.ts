@@ -1,7 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import { RestApiConstruct } from './rest-api';
 import { HttpApiConstruct } from './http-api';
 import { DatabaseConstruct } from './database-construct';
 import { BastionConstruct } from './bastion-construct';
@@ -33,17 +32,6 @@ export class RailsLambdaStack extends cdk.Stack {
         const redisConstruct = new RedisConstruct(this, 'RedisConstruct', {
             vpc: dbConstruct.vpc,
             securityGroup: dbConstruct.dbSecurityGroup
-        });
-
-        new RestApiConstruct(this, 'Rest', {
-            railsMasterKey: props.railsMasterKey,
-            dbHost: dbConstruct.dbEndpoint,
-            dbPort: dbConstruct.dbPort,
-            dbName: dbConstruct.dbName,
-            dbUser: dbConstruct.dbUser,
-            dbPassword: dbConstruct.dbPassword,
-            vpc: dbConstruct.vpc,
-            securityGroups: [dbConstruct.dbSecurityGroup],
         });
 
         const httpApi = new HttpApiConstruct(this, 'Http', {

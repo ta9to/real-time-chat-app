@@ -7,6 +7,7 @@ import { BastionConstruct } from './bastion-construct';
 import { StorageConstruct } from './storage-construct';
 import { CloudFrontConstruct } from './cloudfront-construct';
 import { RedisConstruct } from './redis-construct';
+import { DynamodbConstruct } from './dynamodb-construct';
 
 export interface RailsLambdaStackProps extends cdk.StackProps {
     /** RAILS_MASTER_KEY */
@@ -45,6 +46,13 @@ export class RailsLambdaStack extends cdk.Stack {
             securityGroups: [dbConstruct.dbSecurityGroup],
         });
         const railsFunction = httpApi.lambdaFunction;
+
+        const dynamoConstruct = new DynamodbConstruct(this, 'DynamodbConstruct', {
+            tableName: 'Messages',
+        });
+        railsFunction.addEnvironment('MESSAGES_TABLE_NAME', dynamoConstruct.messagesTable.tableName);
+        dynamoConstruct.messagesTable.grantReadWriteData(railsFunction);
+
         storageConstruct.bucket.grantReadWrite(railsFunction);
 
         // redis env

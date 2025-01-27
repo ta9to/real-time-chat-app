@@ -51,6 +51,7 @@ export class RailsLambdaStack extends cdk.Stack {
             tableName: 'Messages',
         });
         railsFunction.addEnvironment('MESSAGES_TABLE_NAME', dynamoConstruct.messagesTable.tableName);
+        railsFunction.addEnvironment('MESSAGE_STORAGE_ENGINE', 'dynamo');
         dynamoConstruct.messagesTable.grantReadWriteData(railsFunction);
 
         storageConstruct.bucket.grantReadWrite(railsFunction);

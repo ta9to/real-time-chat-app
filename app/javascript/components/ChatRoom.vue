@@ -92,6 +92,7 @@ export default {
   },
   async created() {
     this.fetchRoom(this.roomId)
+    this.fetchMessages(this.roomId)
     this.fetchMembers(this.roomId)
     this.fetchAllUsers()
   },
@@ -102,7 +103,10 @@ export default {
       this.room = data
       this.editRoomName = data.name
       this.editRoomPrivate = data.is_private
-      this.messages = data.messages || []
+    },
+    async fetchMessages(id) {
+      const resp = await fetch(`/rooms/${id}/messages`)
+      this.messages = await resp.json()
     },
     async fetchMembers(id) {
       const resp = await fetch(`/rooms/${id}/members.json`)
@@ -143,13 +147,33 @@ export default {
     },
     async submitMessage() {
       if (!this.newMessage.trim()) return
-      const newMsg = {
-        id: Date.now(),
-        user: { name: "You" },
-        content: this.newMessage
+
+      try {
+        const token = document.querySelector('[name="csrf-token"]').content
+        const resp = await fetch(`/rooms/${this.roomId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token
+          },
+          body: JSON.stringify({
+            message: {
+              content: this.newMessage
+            }
+          })
+        })
+        if (!resp.ok) {
+          const errData = await resp.json()
+          alert('メッセージ送信エラー: ' + errData.errors.join(', '))
+          return
+        }
+        const createdMessage = await resp.json()
+        this.messages.push(createdMessage)
+        this.newMessage = ""
+      } catch (error) {
+        console.error(error)
+        alert('メッセージ送信に失敗しました。')
       }
-      this.messages.push(newMsg)
-      this.newMessage = ""
     }
   }
 }

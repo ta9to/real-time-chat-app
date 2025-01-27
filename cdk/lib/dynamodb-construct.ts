@@ -15,10 +15,14 @@ export class DynamodbConstruct extends Construct {
         const tableName = props?.tableName || 'Messages';
 
         this.messagesTable = new dynamodb.Table(this, 'MessagesTable', {
-            tableName,
+            // tableName, 設定を更新する時に同名既存リソースあるとぶつかるので一旦指定しない
             partitionKey: {
-                name: 'id',
+                name: 'roomId',
                 type: dynamodb.AttributeType.STRING
+            },
+            sortKey: {
+                name: 'createdAt',
+                type: dynamodb.AttributeType.STRING,
             },
             billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
             removalPolicy: RemovalPolicy.DESTROY,

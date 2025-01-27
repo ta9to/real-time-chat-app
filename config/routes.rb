@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   resources :users, only: [:index, :update]
   get "rooms/direct", to: "rooms#direct", as: :direct_room
   resources :rooms, only: [:index, :show, :create, :update, :destroy] do
-    resources :messages, only: [:create]
+    resources :messages, only: [:index, :create]
     member do
       get :members, defaults: { format: :json }
     end

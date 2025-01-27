@@ -47,6 +47,7 @@ group :production do
   gem 'aws_lambda_ric'
   gem 'aws-sdk-s3'
   gem 'redis-actionpack'
+  gem 'aws-sdk-dynamodb'
 end
 
 group :development, :test do

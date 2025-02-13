@@ -39,7 +39,7 @@ export class HttpApiConstruct extends Construct {
 
         // Docker image
         const apiContainerImage = lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../'), {
-            platform: Platform.LINUX_ARM64,
+            platform: Platform.LINUX_AMD64,
             ignoreMode: cdk.IgnoreMode.DOCKER,
 
             entrypoint: [
@@ -66,7 +66,7 @@ export class HttpApiConstruct extends Construct {
 
         // Lambda function
         this.lambdaFunction = new lambda.DockerImageFunction(this, 'ApiFunction', {
-            architecture: lambda.Architecture.ARM_64,
+            architecture: lambda.Architecture.X86_64,
             memorySize: 2048,
             code: apiContainerImage,
             environment: env,
